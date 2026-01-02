@@ -1,15 +1,16 @@
 import { useState } from 'react';
 import { Paper, Button, Group, Badge, Stack, Text, Combobox, useCombobox, InputBase } from '@mantine/core';
 import { IconPlugConnected, IconPlugConnectedX } from '@tabler/icons-react';
+import { useIntl } from 'react-intl';
 import { COMMON_BAUD_RATES } from '../utils/serialUtils';
 import { SerialConnectionConfig } from '../types';
+import { DEFAULT_LINE_ENDING, DEFAULT_BAUD_RATE } from '../constants';
 
 interface SerialConnectionProps {
   isConnected: boolean;
   onConnect: (baudRate: number) => Promise<void>;
   onDisconnect: () => Promise<void>;
   onConfigChange: (config: SerialConnectionConfig) => void;
-  error: string | null;
   portName: string | null;
 }
 
@@ -18,36 +19,31 @@ export function SerialConnection({
   onConnect,
   onDisconnect,
   onConfigChange,
-  error,
   portName,
 }: SerialConnectionProps) {
-  const [baudRate, setBaudRate] = useState<string>('115200');
+  const intl = useIntl();
+  const t = (key: string) => intl.formatMessage({ id: key });
+  const [baudRate, setBaudRate] = useState<string>(DEFAULT_BAUD_RATE.toString());
   const baudRateCombobox = useCombobox({
     onDropdownClose: () => baudRateCombobox.resetSelectedOption(),
   });
 
   const handleConnect = async () => {
-    console.log('[SerialConnection] Connect button clicked');
     const config: SerialConnectionConfig = {
       baudRate: parseInt(baudRate, 10),
-      lineEnding: 'none', // Default, will be overridden by DataSender
+      lineEnding: DEFAULT_LINE_ENDING, // Default, will be overridden by DataSender
     };
-    console.log('[SerialConnection] Config:', config);
     onConfigChange(config);
-    console.log('[SerialConnection] Calling onConnect with baudRate:', config.baudRate);
     try {
       await onConnect(config.baudRate);
-      console.log('[SerialConnection] onConnect completed');
     } catch (err) {
       console.error('[SerialConnection] Error in onConnect:', err);
     }
   };
 
   const handleDisconnect = async () => {
-    console.log('[SerialConnection] Disconnect button clicked');
     try {
       await onDisconnect();
-      console.log('[SerialConnection] onDisconnect completed');
     } catch (err) {
       console.error('[SerialConnection] Error in onDisconnect:', err);
     }
@@ -58,9 +54,9 @@ export function SerialConnection({
       <Stack gap="md">
         <Group justify="space-between" align="center">
           <Group gap="xs" align="center">
-            <Text fw={500} size="lg">Serial Connection</Text>
+            <Text fw={500} size="md">{t('serialConnection.title')}</Text>
             <Badge color={isConnected ? 'green' : 'gray'} size="sm">
-              {isConnected ? 'Connected' : 'Disconnected'}
+              {isConnected ? t('common.connected') : t('common.disconnected')}
             </Badge>
             {isConnected && portName && (
               <Text size="sm" c="dimmed">
@@ -87,7 +83,7 @@ export function SerialConnection({
                   style={{ width: 120 }}
                   size="sm"
                 >
-                  {baudRate || <span style={{ color: 'var(--mantine-color-dimmed)' }}>Baud Rate</span>}
+                  {baudRate || <span style={{ color: 'var(--mantine-color-dimmed)' }}>{t('serialConnection.baudRate')}</span>}
                 </InputBase>
               </Combobox.Target>
 
@@ -105,7 +101,7 @@ export function SerialConnection({
               <Button
                 onClick={handleConnect}
                 disabled={!baudRate}
-                title="Connect"
+                title={t('common.connect')}
               >
                 <IconPlugConnectedX size={16} />
               </Button>
@@ -113,18 +109,13 @@ export function SerialConnection({
               <Button
                 onClick={handleDisconnect}
                 color="red"
-                title="Disconnect"
+                title={t('common.disconnect')}
               >
                 <IconPlugConnected size={16} />
               </Button>
             )}
           </Group>
         </Group>
-
-        {error && (
-          <Text c="red" size="sm">{error}</Text>
-        )}
-
       </Stack>
     </Paper>
   );

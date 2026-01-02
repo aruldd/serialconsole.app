@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { Paper, Select, Stack, Text, ScrollArea, Code } from '@mantine/core';
+import { useIntl } from 'react-intl';
 import { SerialMessage, DataFormat } from '../types';
-import { FORMAT_OPTIONS } from '../utils/serialUtils';
+import { getFormatOptions } from '../utils/serialUtils';
 import { bytesToString } from '../utils/formatConverter';
 
 interface DataReceiverProps {
@@ -9,9 +10,13 @@ interface DataReceiverProps {
 }
 
 export function DataReceiver({ messages }: DataReceiverProps) {
+  const intl = useIntl();
+  const t = (key: string) => intl.formatMessage({ id: key });
   const [format, setFormat] = useState<DataFormat>('hex');
   const [autoScroll, setAutoScroll] = useState(true);
   const viewportRef = useRef<HTMLDivElement>(null);
+  
+  const formatOptions = useMemo(() => getFormatOptions(t), [t]);
 
   // Get only received messages
   const receivedMessages = messages.filter(m => m.type === 'received');
@@ -33,7 +38,7 @@ export function DataReceiver({ messages }: DataReceiverProps) {
           placeholder="Select format"
           value={format}
           onChange={(value) => value && setFormat(value as DataFormat)}
-          data={FORMAT_OPTIONS}
+          data={formatOptions}
         />
 
         <ScrollArea

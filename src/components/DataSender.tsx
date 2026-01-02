@@ -1,8 +1,11 @@
-import { useState } from 'react';
-import { Paper, TextInput, Textarea, Select, Button, Stack, Text, Group, SegmentedControl } from '@mantine/core';
+import { useState, useMemo } from 'react';
+import { Paper, TextInput, Textarea, Button, Stack, Text, SegmentedControl, Kbd } from '@mantine/core';
 import { IconSend } from '@tabler/icons-react';
+import { useIntl, FormattedMessage } from 'react-intl';
 import { DataFormat, SerialConnectionConfig, LineEnding } from '../types';
-import { FORMAT_OPTIONS, LINE_ENDING_OPTIONS } from '../utils/serialUtils';
+import { getFormatOptions, getLineEndingOptions } from '../utils/serialUtils';
+import { stringToBytes } from '../utils/formatConverter';
+import { DEFAULT_DATA_FORMAT, DEFAULT_LINE_ENDING } from '../constants';
 
 interface DataSenderProps {
   isConnected: boolean;
@@ -12,14 +15,32 @@ interface DataSenderProps {
 }
 
 export function DataSender({ isConnected, onSend, config, onConfigChange }: DataSenderProps) {
+  const intl = useIntl();
+  const t = (key: string, values?: Record<string, any>) => intl.formatMessage({ id: key }, values);
   const [data, setData] = useState('');
-  const [format, setFormat] = useState<DataFormat>('ascii');
+  const [format, setFormat] = useState<DataFormat>(DEFAULT_DATA_FORMAT);
   const [sending, setSending] = useState(false);
-  const [lineEnding, setLineEnding] = useState<LineEnding>(config.lineEnding || 'none');
+  const [lineEnding, setLineEnding] = useState<LineEnding>(config.lineEnding || DEFAULT_LINE_ENDING);
   const [customLineEnding, setCustomLineEnding] = useState(config.customLineEnding || '');
+  
+  const formatOptions = useMemo(() => getFormatOptions(t), [t]);
+  const lineEndingOptions = useMemo(() => getLineEndingOptions(t), [t]);
+
+  // Validate data based on format
+  const validation = useMemo(() => {
+    if (!data.trim()) {
+      return { isValid: true, error: null }; // Empty is valid (just can't send)
+    }
+    
+    const result = stringToBytes(data, format);
+    return {
+      isValid: !result.error,
+      error: result.error || null,
+    };
+  }, [data, format]);
 
   const handleSend = async () => {
-    if (!data.trim() || !isConnected) return;
+    if (!data.trim() || !isConnected || !validation.isValid) return;
 
     setSending(true);
     try {
@@ -32,65 +53,115 @@ export function DataSender({ isConnected, onSend, config, onConfigChange }: Data
       await onSend(data, format, sendConfig);
       setData(''); // Clear input after successful send
     } catch (error) {
-      console.error('Send error:', error);
+      console.error('[DataSender] Send error:', error);
     } finally {
       setSending(false);
     }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-      handleSend();
+    // For non-ASCII formats, Enter alone sends
+    // For ASCII format, Ctrl+Enter or Cmd+Enter sends
+    if (format !== 'ascii' && format !== 'utf8') {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleSend();
+      }
+    } else {
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        handleSend();
+      }
     }
+  };
+
+  const getDescription = () => {
+    const enterKey = <Kbd size="xs">Enter</Kbd>;
+    const ctrlKey = <Kbd size="xs">Ctrl</Kbd>;
+    const cmdKey = <Kbd size="xs">Cmd</Kbd>;
+    
+    if (format === 'hex') {
+      return (
+        <FormattedMessage
+          id="dataSender.formatHex"
+          values={{ enter: enterKey }}
+        />
+      );
+    }
+    if (format === 'binary') {
+      return (
+        <FormattedMessage
+          id="dataSender.formatBinary"
+          values={{ enter: enterKey }}
+        />
+      );
+    }
+    if (format === 'decimal') {
+      return (
+        <FormattedMessage
+          id="dataSender.formatDecimal"
+          values={{ enter: enterKey }}
+        />
+      );
+    }
+    if (format === 'base64') {
+      return (
+        <FormattedMessage
+          id="dataSender.formatBase64"
+          values={{ enter: enterKey }}
+        />
+      );
+    }
+    return (
+      <FormattedMessage
+        id="dataSender.formatAscii"
+        values={{ ctrl: ctrlKey, enter: enterKey, cmd: cmdKey }}
+      />
+    );
+  };
+  
+  const getPlaceholder = () => {
+    if (format === 'hex') return t('dataSender.placeholderHex');
+    if (format === 'binary') return t('dataSender.placeholderBinary');
+    if (format === 'decimal') return t('dataSender.placeholderDecimal');
+    if (format === 'base64') return t('dataSender.placeholderBase64');
+    return t('dataSender.placeholderText');
   };
 
   return (
     <Paper p="md">
       <Stack gap="md">
-        <Text fw={500} size="lg">Send Data</Text>
+        <Text fw={500} size="md">{t('dataSender.title')}</Text>
 
         <Stack gap="xs">
-          <Text size="sm" fw={500}>Format</Text>
+          <Text size="sm" fw={500}>{t('common.format')}</Text>
           <SegmentedControl
             value={format}
             onChange={(value) => setFormat(value as DataFormat)}
-            data={FORMAT_OPTIONS}
+            data={formatOptions}
             disabled={!isConnected}
             fullWidth
           />
         </Stack>
 
         <Textarea
-          label="Data"
-          placeholder={
-            format === 'hex' ? 'Enter hex values (e.g., 0xFF 0x00 0x1A or FF 00 1A)' :
-            format === 'binary' ? 'Enter binary values (e.g., 0b11111111 0b00000000 or 11111111 00000000)' :
-            format === 'decimal' ? 'Enter decimal values (e.g., 255 0 26)' :
-            format === 'base64' ? 'Enter base64 string' :
-            'Enter text data'
-          }
+          label={t('dataSender.dataLabel')}
+          placeholder={getPlaceholder()}
+          description={getDescription()}
           value={data}
           onChange={(e) => setData(e.currentTarget.value)}
           onKeyDown={handleKeyPress}
           disabled={!isConnected || sending}
+          error={validation.error || undefined}
           styles={{ input: { fontFamily: 'monospace' } }}
           minRows={3}
           resize="vertical"
         />
 
-        <Text size="xs" c="dimmed">
-          {format === 'hex' && 'Format: hex with 0x prefix (0xFF 0x00 0x1A) or space-separated (FF 00 1A)'}
-          {format === 'binary' && 'Format: binary with 0b prefix (0b11111111 0b00000000) or space-separated (11111111 00000000)'}
-          {format === 'decimal' && 'Format: space-separated decimal values 0-255 (e.g., 255 0 26)'}
-          {format === 'base64' && 'Format: base64 encoded string'}
-          {format !== 'hex' && format !== 'binary' && format !== 'decimal' && format !== 'base64' && 
-            'Press Ctrl+Enter or Cmd+Enter to send'}
-        </Text>
-
         {format === 'ascii' && (
           <>
             <Stack gap="xs">
-              <Text size="sm" fw={500}>Line Ending</Text>
+              <Text size="sm" fw={500}>{t('dataSender.lineEnding')}</Text>
               <SegmentedControl
                 value={lineEnding}
                 onChange={(value) => {
@@ -102,7 +173,7 @@ export function DataSender({ isConnected, onSend, config, onConfigChange }: Data
                   };
                   onConfigChange(newConfig);
                 }}
-                data={LINE_ENDING_OPTIONS}
+                data={lineEndingOptions}
                 disabled={!isConnected}
                 fullWidth
               />
@@ -110,8 +181,8 @@ export function DataSender({ isConnected, onSend, config, onConfigChange }: Data
 
             {lineEnding === 'custom' && (
               <TextInput
-                label="Custom Line Ending"
-                placeholder="Enter custom line ending"
+                label={t('dataSender.customLineEnding')}
+                placeholder={t('dataSender.customLineEndingPlaceholder')}
                 value={customLineEnding}
                 onChange={(e) => {
                   const newValue = e.currentTarget.value;
@@ -132,11 +203,11 @@ export function DataSender({ isConnected, onSend, config, onConfigChange }: Data
         <Button
           leftSection={<IconSend size={16} />}
           onClick={handleSend}
-          disabled={!isConnected || !data.trim() || sending}
+          disabled={!isConnected || !data.trim() || sending || !validation.isValid}
           loading={sending}
           fullWidth
         >
-          Send
+          {t('common.send')}
         </Button>
       </Stack>
     </Paper>

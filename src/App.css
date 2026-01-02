@@ -4,6 +4,7 @@
   background-repeat: no-repeat;
   background-position: 50%;
   transition: background-color 0.2s ease;
+  width: 2px !important;
 }
 
 .gutter:hover {

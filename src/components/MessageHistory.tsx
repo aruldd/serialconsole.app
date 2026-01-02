@@ -1,8 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { Paper, Button, Group, Stack, Text, ScrollArea, Code, Switch, Box, ActionIcon } from '@mantine/core';
-import { IconTrash, IconDownload, IconCopy } from '@tabler/icons-react';
+import { Paper, Button, Group, Stack, Text, ScrollArea, Switch, Box } from '@mantine/core';
+import { IconTrash, IconDownload } from '@tabler/icons-react';
+import { useIntl } from 'react-intl';
 import { SerialMessage, DataFormat, SerialConnectionConfig } from '../types';
-import { bytesToString } from '../utils/formatConverter';
+import { useExportMessages } from '../hooks/useExportMessages';
+import { MessageItem } from './MessageItem';
+import { INITIAL_SCROLL_HEIGHT, AUTO_SCROLL_THRESHOLD } from '../constants';
 
 interface MessageHistoryProps {
   messages: SerialMessage[];
@@ -13,10 +16,13 @@ interface MessageHistoryProps {
 }
 
 export function MessageHistory({ messages, onClear, onResend, isConnected, currentConfig }: MessageHistoryProps) {
+  const intl = useIntl();
+  const t = (key: string) => intl.formatMessage({ id: key });
   const [autoScroll, setAutoScroll] = useState(true);
-  const [scrollHeight, setScrollHeight] = useState(600);
+  const [scrollHeight, setScrollHeight] = useState(INITIAL_SCROLL_HEIGHT);
   const viewportRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const { exportMessages } = useExportMessages();
 
   // Calculate scroll area height based on container
   useEffect(() => {
@@ -62,32 +68,17 @@ export function MessageHistory({ messages, onClear, onResend, isConnected, curre
   }, [messages, autoScroll]);
 
   const handleExport = () => {
-    const logContent = messages.map((msg) => {
-      const timestamp = msg.timestamp.toLocaleString();
-      const type = msg.type === 'sent' ? '[SENT]' : '[RECEIVED]';
-      const data = bytesToString(msg.data, msg.format);
-      return `${timestamp} ${type} [${msg.format.toUpperCase()}]\n${data}\n`;
-    }).join('\n---\n\n');
-
-    const blob = new Blob([logContent], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `serial-log-${new Date().toISOString().replace(/[:.]/g, '-')}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    exportMessages(messages);
   };
 
   return (
-    <Paper p="md" style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+    <Paper style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden', backgroundColor: 'var(--mantine-color-gray-0)' }}>
       <Stack gap="md" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        <Group justify="space-between" align="center" style={{ flexShrink: 0 }}>
-          <Text fw={500} size="lg">Message History</Text>
+        <Group p="md" justify="space-between" align="center" style={{ flexShrink: 0 }}>
+          <Text fw={500} size="md">{t('messageHistory.title')}</Text>
           <Group>
             <Switch
-              label="Auto-scroll"
+              label={t('common.autoScroll')}
               checked={autoScroll}
               onChange={(e) => setAutoScroll(e.currentTarget.checked)}
               size="sm"
@@ -98,7 +89,7 @@ export function MessageHistory({ messages, onClear, onResend, isConnected, curre
               color="red"
               disabled={messages.length === 0}
               size="sm"
-              title="Clear"
+              title={t('common.clear')}
             >
               <IconTrash size={16} />
             </Button>
@@ -107,7 +98,7 @@ export function MessageHistory({ messages, onClear, onResend, isConnected, curre
               variant="light"
               disabled={messages.length === 0}
               size="sm"
-              title="Export"
+              title={t('common.export')}
             >
               <IconDownload size={16} />
             </Button>
@@ -120,98 +111,28 @@ export function MessageHistory({ messages, onClear, onResend, isConnected, curre
             type="auto"
             viewportRef={viewportRef}
             onScrollPositionChange={() => {
-              if (viewportRef.current) {
-                const { scrollTop, scrollHeight, clientHeight } = viewportRef.current;
-                const isAtBottom = scrollHeight - scrollTop - clientHeight < 10;
-                setAutoScroll(isAtBottom);
-              }
+            if (viewportRef.current) {
+              const { scrollTop, scrollHeight, clientHeight } = viewportRef.current;
+              const isAtBottom = scrollHeight - scrollTop - clientHeight < AUTO_SCROLL_THRESHOLD;
+              setAutoScroll(isAtBottom);
+            }
             }}
           >
           <Stack gap="xs" style={{ paddingBottom: '16px' }}>
             {messages.length === 0 ? (
               <Text c="dimmed" size="sm" ta="center" py="xl">
-                No messages yet
+                {t('messageHistory.noMessages')}
               </Text>
             ) : (
-              messages.map((message) => {
-                const displayText = bytesToString(message.data, message.format);
-                const isSent = message.type === 'sent';
-                const canResend = isSent && isConnected && message.originalData && onResend && currentConfig;
-                
-                const handleClick = () => {
-                  if (canResend && message.originalData) {
-                    onResend(message.originalData, message.format, currentConfig);
-                  }
-                };
-
-                const handleCopy = async (e: React.MouseEvent) => {
-                  e.stopPropagation();
-                  try {
-                    await navigator.clipboard.writeText(displayText);
-                  } catch (err) {
-                    console.error('Failed to copy:', err);
-                  }
-                };
-                
-                return (
-                  <div 
-                    key={message.id}
-                    onClick={canResend ? handleClick : undefined}
-                    style={{
-                      cursor: canResend ? 'pointer' : 'default',
-                      transition: 'opacity 0.2s',
-                      position: 'relative',
-                    }}
-                    onMouseEnter={(e) => {
-                      if (canResend) {
-                        e.currentTarget.style.opacity = '0.8';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (canResend) {
-                        e.currentTarget.style.opacity = '1';
-                      }
-                    }}
-                  >
-                    <Group gap="xs" mb={4} justify="space-between" align="center">
-                      <Group gap="xs">
-                        <Text
-                          size="xs"
-                          fw={500}
-                          c={isSent ? 'blue' : 'green'}
-                        >
-                          {isSent ? '→ SENT' : '← RECEIVED'}
-                        </Text>
-                        <Text size="xs" c="dimmed">
-                          {message.timestamp.toLocaleTimeString()}
-                        </Text>
-                        <Text size="xs" c="dimmed">
-                          [{message.format.toUpperCase()}]
-                        </Text>
-                      </Group>
-                      <ActionIcon
-                        variant="subtle"
-                        color="gray"
-                        size="sm"
-                        title="Copy"
-                        onClick={handleCopy}
-                      >
-                        <IconCopy size={14} />
-                      </ActionIcon>
-                    </Group>
-                    <Code
-                      block
-                      style={{
-                        whiteSpace: 'pre-wrap',
-                        wordBreak: 'break-all',
-                        backgroundColor: isSent ? 'var(--mantine-color-blue-0)' : 'var(--mantine-color-green-0)',
-                      }}
-                    >
-                      {displayText}
-                    </Code>
-                  </div>
-                );
-              })
+              messages.map((message) => (
+                <MessageItem
+                  key={message.id}
+                  message={message}
+                  onResend={onResend}
+                  isConnected={isConnected}
+                  currentConfig={currentConfig}
+                />
+              ))
             )}
           </Stack>
           </ScrollArea>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Stack } from '@mantine/core';
+import { Stack, Divider } from '@mantine/core';
 import Split from 'react-split';
 import { useSerialPort } from './hooks/useSerialPort';
 import { SerialConnection } from './components/SerialConnection';
@@ -7,6 +7,7 @@ import { DataSender } from './components/DataSender';
 import { MessageHistory } from './components/MessageHistory';
 import { SentMessages } from './components/SentMessages';
 import { SerialConnectionConfig } from './types';
+import { DEFAULT_BAUD_RATE, DEFAULT_LINE_ENDING, SPLIT_PANE_SIZES, SPLIT_PANE_MIN_SIZE, SPLIT_GUTTER_SIZE } from './constants';
 import './App.css';
 
 function App() {
@@ -17,13 +18,12 @@ function App() {
     disconnect,
     send,
     clearMessages,
-    error,
     portName,
   } = useSerialPort();
 
   const [config, setConfig] = useState<SerialConnectionConfig>({
-    baudRate: 115200,
-    lineEnding: 'none',
+    baudRate: DEFAULT_BAUD_RATE,
+    lineEnding: DEFAULT_LINE_ENDING,
   });
 
 
@@ -31,15 +31,15 @@ function App() {
     <div style={{ height: '100vh' }}>
       <Split
         direction="horizontal"
-        minSize={300}
-        sizes={[70, 30]}
+        minSize={SPLIT_PANE_MIN_SIZE}
+        sizes={[...SPLIT_PANE_SIZES]}
         style={{ height: '100vh', display: 'flex' }}
-        gutterSize={8}
+        gutterSize={SPLIT_GUTTER_SIZE}
         gutterAlign="center"
         snapOffset={0}
       >
         {/* Left Pane: Message History */}
-        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden', }}>
+        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden', backgroundColor: 'var(--mantine-color-gray-0)' }}>
           <MessageHistory
             messages={messages}
             onClear={clearMessages}
@@ -51,21 +51,22 @@ function App() {
 
         {/* Right Pane: Connection and Send Tools */}
         <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden',  }}>
-          <Stack gap="md" style={{ height: '100%' }}>
+          <Stack gap={0} style={{ height: '100%' }}>
             <SerialConnection
               isConnected={isConnected}
               onConnect={connect}
               onDisconnect={disconnect}
               onConfigChange={setConfig}
-              error={error}
               portName={portName}
             />
+            <Divider />
             <DataSender
               isConnected={isConnected}
               onSend={send}
               config={config}
               onConfigChange={setConfig}
             />
+            <Divider />
             <SentMessages
               messages={messages}
               onResend={send}

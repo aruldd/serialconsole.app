@@ -1,0 +1,92 @@
+{
+  "common": {
+    "send": "Send",
+    "clear": "Clear",
+    "export": "Export",
+    "copy": "Copy",
+    "connect": "Connect",
+    "disconnect": "Disconnect",
+    "connected": "Connected",
+    "disconnected": "Disconnected",
+    "format": "Format",
+    "resend": "Resend",
+    "autoScroll": "Auto-scroll"
+  },
+  "serialConnection": {
+    "title": "SERIAL CONNECTION",
+    "baudRate": "Baud Rate"
+  },
+  "dataSender": {
+    "title": "SEND DATA",
+    "dataLabel": "Data to send",
+    "lineEnding": "Line Ending",
+    "customLineEnding": "Custom Line Ending",
+    "customLineEndingPlaceholder": "Enter custom line ending",
+    "formatHex": "Format: hex with 0x prefix (0xFF 0x00 0x1A) or space-separated (FF 00 1A). Press {enter} to send",
+    "formatBinary": "Format: binary with 0b prefix (0b11111111 0b00000000) or space-separated (11111111 00000000). Press {enter} to send",
+    "formatDecimal": "Format: space-separated decimal values 0-255 (e.g., 255 0 26). Press {enter} to send",
+    "formatBase64": "Format: base64 encoded string. Press {enter} to send",
+    "formatAscii": "Press {ctrl} + {enter} or {cmd} + {enter} to send",
+    "placeholderHex": "Enter hex values (e.g., 0xFF 0x00 0x1A or FF 00 1A)",
+    "placeholderBinary": "Enter binary values (e.g., 0b11111111 0b00000000 or 11111111 00000000)",
+    "placeholderDecimal": "Enter decimal values (e.g., 255 0 26)",
+    "placeholderBase64": "Enter base64 string",
+    "placeholderText": "Enter text data"
+  },
+  "messageHistory": {
+    "title": "MESSAGE HISTORY",
+    "noMessages": "No messages yet"
+  },
+  "sentMessages": {
+    "title": "SENT MESSAGES",
+    "noMessages": "No sent messages yet",
+    "sentCount": "Sent {count} {count, plural, one {time} other {times}}"
+  },
+  "messageItem": {
+    "sent": "→ SENT",
+    "received": "← RECEIVED"
+  },
+  "formats": {
+    "ascii": "ASCII",
+    "hex": "Hex",
+    "decimal": "Decimal",
+    "binary": "Binary",
+    "utf8": "UTF-8",
+    "base64": "Base64"
+  },
+  "lineEndings": {
+    "none": "None",
+    "cr": "CR (\\r)",
+    "lf": "LF (\\n)",
+    "crlf": "CRLF (\\r\\n)",
+    "custom": "Custom"
+  },
+  "errors": {
+    "invalidHexFormat": "Invalid hex format",
+    "invalidHexFormatOdd": "Invalid hex format (odd number of hex digits)",
+    "invalidHexFormatPrefix": "Invalid hex format with 0x prefix",
+    "invalidBinaryFormat": "Invalid binary format (must contain only 0 and 1)",
+    "invalidBinaryFormatMultiple": "Invalid binary format (must be multiple of 8 bits)",
+    "invalidBinaryFormatPrefix": "Invalid binary format with 0b prefix",
+    "invalidDecimalValue": "Invalid decimal value: {value}",
+    "invalidBase64Format": "Invalid base64 format",
+    "unknownFormat": "Unknown format",
+    "conversionError": "Conversion error",
+    "webSerialNotSupported": "Web Serial API is not supported in this browser",
+    "portSelectionCancelled": "Port selection was cancelled",
+    "portAlreadyOpen": "Port is already open",
+    "connectionFailed": "Connection failed",
+    "readError": "Read error",
+    "sendError": "Send error",
+    "disconnectError": "Disconnect error",
+    "copyError": "Failed to copy"
+  },
+  "notifications": {
+    "connected": "Connected to serial port",
+    "disconnected": "Disconnected from serial port",
+    "readError": "Read error: {message}",
+    "sendError": "Send error: {message}",
+    "disconnectError": "Disconnect error: {message}"
+  }
+}
+
