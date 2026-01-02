@@ -9,12 +9,13 @@ import './index.css';
 import App from './App';
 import { messages, defaultLocale } from './utils/i18n';
 import { MantineColorSchemeScript } from './components/ColorSchemeScript';
+import { mantineTheme } from './theme';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <MantineColorSchemeScript />
     <IntlProvider locale={defaultLocale} messages={messages[defaultLocale]}>
-      <MantineProvider defaultColorScheme="auto">
+      <MantineProvider defaultColorScheme="auto" theme={mantineTheme}>
         <Notifications position="bottom-left" />
         <App />
       </MantineProvider>

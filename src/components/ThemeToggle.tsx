@@ -12,8 +12,8 @@ export function ThemeToggle() {
   return (
     <Tooltip label={isDark ? t('common.lightMode') : t('common.darkMode')}>
       <ActionIcon
-        variant="subtle"
-        color={isDark ? 'yellow' : 'gray'}
+        variant="filled"
+        color={isDark ? 'yellow' : 'black'}
         onClick={() => toggleColorScheme()}
         size="lg"
         aria-label={isDark ? t('common.lightMode') : t('common.darkMode')}

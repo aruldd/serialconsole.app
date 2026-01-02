@@ -1,10 +1,10 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
-import { Paper, Button, Group, Badge, Stack, Text, Combobox, useCombobox, InputBase, ActionIcon, Switch, SegmentedControl } from '@mantine/core';
+import { ActionIcon, Button, Combobox, Group, InputBase, Paper, SegmentedControl, Stack, Switch, Text, useCombobox } from '@mantine/core';
 import { IconPlugConnected, IconPlugConnectedX, IconRefresh } from '@tabler/icons-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
+import { DEFAULT_BAUD_RATE, DEFAULT_LINE_ENDING } from '../constants';
+import { LineEnding, SerialConnectionConfig, SerialPortOption } from '../types';
 import { COMMON_BAUD_RATES, getLineEndingOptions } from '../utils/serialUtils';
-import { SerialConnectionConfig, SerialPortOption, LineEnding } from '../types';
-import { DEFAULT_LINE_ENDING, DEFAULT_BAUD_RATE } from '../constants';
 
 interface SerialConnectionProps {
   isConnected: boolean;
@@ -23,7 +23,6 @@ export function SerialConnection({
   onConnect,
   onDisconnect,
   onConfigChange,
-  portName,
   availablePorts,
   refreshPorts,
   requestNewPort,
@@ -125,16 +124,6 @@ export function SerialConnection({
       <Stack gap="md">
         <Text fw={500} size="md">{t('serialConnection.title')}</Text>
         <Group gap="xs" align="center" justify="space-between">
-          <Group gap="xs" align="center">
-            <Badge color={isConnected ? 'green' : 'gray'} size="lg">
-              {isConnected ? t('common.connected') : t('common.disconnected')}
-            </Badge>
-            {isConnected && portName && (
-              <Text size="sm" c="dimmed">
-                {portName}
-              </Text>
-            )}
-          </Group>
           <Group gap="xs" align="center">
             {availablePorts.length > 0 && (
               <>
