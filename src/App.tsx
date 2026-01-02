@@ -20,6 +20,9 @@ function App() {
     send,
     clearMessages,
     portName,
+    availablePorts,
+    refreshPorts,
+    requestNewPort,
   } = useSerialPort();
 
   const [config, setConfig] = useState<SerialConnectionConfig>({
@@ -61,6 +64,9 @@ function App() {
               onDisconnect={disconnect}
               onConfigChange={setConfig}
               portName={portName}
+              availablePorts={availablePorts}
+              refreshPorts={refreshPorts}
+              requestNewPort={requestNewPort}
             />
             <Divider />
             <DataSender

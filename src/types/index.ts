@@ -2,6 +2,12 @@ export type DataFormat = 'hex' | 'binary' | 'ascii' | 'decimal' | 'utf8' | 'base
 
 export type LineEnding = 'none' | 'cr' | 'lf' | 'crlf' | 'custom';
 
+export interface SerialPortOption {
+  port: SerialPort;
+  name: string;
+  id: string; // Unique identifier for the port
+}
+
 export interface SerialMessage {
   id: string;
   type: 'sent' | 'received';

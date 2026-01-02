@@ -1,17 +1,20 @@
-import { useState } from 'react';
-import { Paper, Button, Group, Badge, Stack, Text, Combobox, useCombobox, InputBase } from '@mantine/core';
-import { IconPlugConnected, IconPlugConnectedX } from '@tabler/icons-react';
+import { useState, useEffect, useRef } from 'react';
+import { Paper, Button, Group, Badge, Stack, Text, Combobox, useCombobox, InputBase, ActionIcon } from '@mantine/core';
+import { IconPlugConnected, IconPlugConnectedX, IconRefresh } from '@tabler/icons-react';
 import { useIntl } from 'react-intl';
 import { COMMON_BAUD_RATES } from '../utils/serialUtils';
-import { SerialConnectionConfig } from '../types';
+import { SerialConnectionConfig, SerialPortOption } from '../types';
 import { DEFAULT_LINE_ENDING, DEFAULT_BAUD_RATE } from '../constants';
 
 interface SerialConnectionProps {
   isConnected: boolean;
-  onConnect: (baudRate: number) => Promise<void>;
+  onConnect: (baudRate: number, selectedPort?: SerialPort) => Promise<void>;
   onDisconnect: () => Promise<void>;
   onConfigChange: (config: SerialConnectionConfig) => void;
   portName: string | null;
+  availablePorts: SerialPortOption[];
+  refreshPorts: () => Promise<void>;
+  requestNewPort: () => Promise<SerialPort | null>;
 }
 
 export function SerialConnection({
@@ -20,13 +23,43 @@ export function SerialConnection({
   onDisconnect,
   onConfigChange,
   portName,
+  availablePorts,
+  refreshPorts,
+  requestNewPort,
 }: SerialConnectionProps) {
   const intl = useIntl();
   const t = (key: string) => intl.formatMessage({ id: key });
   const [baudRate, setBaudRate] = useState<string>(DEFAULT_BAUD_RATE.toString());
+  const [selectedPortId, setSelectedPortId] = useState<string | null>(null);
+  const pendingPortRef = useRef<SerialPort | null>(null);
+  
   const baudRateCombobox = useCombobox({
     onDropdownClose: () => baudRateCombobox.resetSelectedOption(),
   });
+  
+  const portCombobox = useCombobox({
+    onDropdownClose: () => portCombobox.resetSelectedOption(),
+  });
+
+  // Auto-select newly requested port when it appears in availablePorts
+  useEffect(() => {
+    if (pendingPortRef.current && availablePorts.length > 0) {
+      const pendingPort = pendingPortRef.current;
+      const newPortInfo = pendingPort.getInfo();
+      const vendorId = newPortInfo.usbVendorId;
+      const productId = newPortInfo.usbProductId;
+      
+      const matchingPort = availablePorts.find(p => {
+        const info = p.port.getInfo();
+        return info.usbVendorId === vendorId && info.usbProductId === productId;
+      });
+      
+      if (matchingPort) {
+        setSelectedPortId(matchingPort.id);
+        pendingPortRef.current = null;
+      }
+    }
+  }, [availablePorts]);
 
   const handleConnect = async () => {
     const config: SerialConnectionConfig = {
@@ -35,10 +68,33 @@ export function SerialConnection({
     };
     onConfigChange(config);
     try {
-      await onConnect(config.baudRate);
+      // Find selected port if one is selected
+      const selectedPort = selectedPortId 
+        ? availablePorts.find(p => p.id === selectedPortId)?.port
+        : undefined;
+      
+      await onConnect(config.baudRate, selectedPort);
     } catch (err) {
       console.error('[SerialConnection] Error in onConnect:', err);
     }
+  };
+
+  const handleRequestNewPort = async () => {
+    try {
+      const newPort = await requestNewPort();
+      if (newPort) {
+        // Store the port reference to auto-select it when ports refresh
+        pendingPortRef.current = newPort;
+        // Refresh ports to get the new one in the list
+        await refreshPorts();
+      }
+    } catch (err) {
+      console.error('[SerialConnection] Error requesting new port:', err);
+    }
+  };
+
+  const handleRefreshPorts = async () => {
+    await refreshPorts();
   };
 
   const handleDisconnect = async () => {
@@ -48,6 +104,10 @@ export function SerialConnection({
       console.error('[SerialConnection] Error in onDisconnect:', err);
     }
   };
+
+  const selectedPortName = selectedPortId 
+    ? availablePorts.find(p => p.id === selectedPortId)?.name 
+    : null;
 
   return (
     <Paper p="md">
@@ -65,6 +125,59 @@ export function SerialConnection({
             )}
           </Group>
           <Group gap="xs" align="center">
+            {availablePorts.length > 0 && (
+              <>
+                <Combobox
+                  store={portCombobox}
+                  onOptionSubmit={(val) => {
+                    setSelectedPortId(val);
+                    portCombobox.closeDropdown();
+                  }}
+                >
+                  <Combobox.Target>
+                    <InputBase
+                      component="button"
+                      type="button"
+                      pointer
+                      rightSection={<Combobox.Chevron />}
+                      onClick={() => !isConnected && portCombobox.toggleDropdown()}
+                      disabled={isConnected}
+                      style={{ width: 150 }}
+                      size="sm"
+                    >
+                      {selectedPortName || <span style={{ color: 'var(--mantine-color-dimmed)' }}>{t('serialConnection.selectPort')}</span>}
+                    </InputBase>
+                  </Combobox.Target>
+
+                  <Combobox.Dropdown>
+                    <Combobox.Options>
+                      {availablePorts.map((portOption) => (
+                        <Combobox.Option value={portOption.id} key={portOption.id}>
+                          {portOption.name}
+                        </Combobox.Option>
+                      ))}
+                    </Combobox.Options>
+                  </Combobox.Dropdown>
+                </Combobox>
+                <ActionIcon
+                  variant="subtle"
+                  onClick={handleRefreshPorts}
+                  disabled={isConnected}
+                  title={t('serialConnection.refreshPorts')}
+                >
+                  <IconRefresh size={16} />
+                </ActionIcon>
+              </>
+            )}
+            <Button
+              variant="light"
+              size="sm"
+              onClick={handleRequestNewPort}
+              disabled={isConnected}
+              title={t('serialConnection.requestNewPort')}
+            >
+              {t('serialConnection.requestNewPort')}
+            </Button>
             <Combobox
               store={baudRateCombobox}
               onOptionSubmit={(val) => {
@@ -103,7 +216,7 @@ export function SerialConnection({
                 disabled={!baudRate}
                 title={t('common.connect')}
               >
-                <IconPlugConnectedX size={16} />
+                <IconPlugConnected size={16} />
               </Button>
             ) : (
               <Button
@@ -111,7 +224,7 @@ export function SerialConnection({
                 color="red"
                 title={t('common.disconnect')}
               >
-                <IconPlugConnected size={16} />
+                <IconPlugConnectedX size={16} />
               </Button>
             )}
           </Group>

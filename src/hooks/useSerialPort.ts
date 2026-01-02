@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { notifications } from '@mantine/notifications';
-import { SerialMessage, SerialConnectionConfig, DataFormat } from '../types';
+import { SerialMessage, SerialConnectionConfig, DataFormat, SerialPortOption } from '../types';
 import { bytesToString, stringToBytes } from '../utils/formatConverter';
 import { appendLineEnding } from '../utils/serialUtils';
 
@@ -9,10 +9,13 @@ interface UseSerialPortReturn {
   isConnected: boolean;
   messages: SerialMessage[];
   portName: string | null;
-  connect: (baudRate: number) => Promise<void>;
+  availablePorts: SerialPortOption[];
+  connect: (baudRate: number, selectedPort?: SerialPort) => Promise<void>;
   disconnect: () => Promise<void>;
   send: (data: string, format: DataFormat, config: SerialConnectionConfig) => Promise<void>;
   clearMessages: () => void;
+  refreshPorts: () => Promise<void>;
+  requestNewPort: () => Promise<SerialPort | null>;
   error: string | null;
 }
 
@@ -136,11 +139,44 @@ function createSentMessage(
   };
 }
 
+/**
+ * Generate a unique ID for a port based on its info
+ */
+function generatePortId(portInfo: SerialPortInfo): string {
+  if (portInfo.usbVendorId && portInfo.usbProductId) {
+    return `usb-${portInfo.usbVendorId}-${portInfo.usbProductId}`;
+  }
+  return `port-${Date.now()}-${Math.random()}`;
+}
+
+/**
+ * Get available ports and convert to options
+ */
+async function getAvailablePorts(): Promise<SerialPortOption[]> {
+  if (!('serial' in navigator) || !navigator.serial) {
+    return [];
+  }
+
+  try {
+    const ports = await navigator.serial.getPorts();
+    return ports.map(port => {
+      const portInfo = port.getInfo();
+      const name = extractPortName(port, portInfo);
+      const id = generatePortId(portInfo);
+      return { port, name, id };
+    });
+  } catch (error) {
+    console.error('[Serial] Error getting available ports:', error);
+    return [];
+  }
+}
+
 export function useSerialPort(): UseSerialPortReturn {
   const [port, setPort] = useState<SerialPort | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [messages, setMessages] = useState<SerialMessage[]>([]);
   const [portName, setPortName] = useState<string | null>(null);
+  const [availablePorts, setAvailablePorts] = useState<SerialPortOption[]>([]);
   const [error, setError] = useState<string | null>(null);
   
   const readerRef = useRef<ReadableStreamDefaultReader<Uint8Array> | null>(null);
@@ -151,6 +187,11 @@ export function useSerialPort(): UseSerialPortReturn {
   useEffect(() => {
     portRef.current = port;
   }, [port]);
+
+  // Load available ports on mount
+  useEffect(() => {
+    getAvailablePorts().then(setAvailablePorts);
+  }, []);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -182,28 +223,36 @@ export function useSerialPort(): UseSerialPortReturn {
   }, [port]);
 
   /**
-   * Request and select a serial port
+   * Request and select a new serial port
    */
-  const requestPort = useCallback(async (): Promise<SerialPort> => {
+  const requestNewPort = useCallback(async (): Promise<SerialPort | null> => {
     if (!('serial' in navigator) || !navigator.serial) {
       throw new Error('Web Serial API is not supported in this browser');
     }
 
     try {
       const selectedPort = await navigator.serial.requestPort();
-      const portInfo = selectedPort.getInfo();
-      const name = extractPortName(selectedPort, portInfo);
-      setPortName(name);
+      // Refresh available ports after requesting a new one
+      const ports = await getAvailablePorts();
+      setAvailablePorts(ports);
       return selectedPort;
     } catch (err) {
       // User cancelled port selection
       if (err instanceof DOMException) {
         if (err.name === 'NotFoundError' || err.name === 'AbortError') {
-          throw new Error('PORT_SELECTION_CANCELLED');
+          return null;
         }
       }
       throw err;
     }
+  }, []);
+
+  /**
+   * Refresh available ports list
+   */
+  const refreshPorts = useCallback(async (): Promise<void> => {
+    const ports = await getAvailablePorts();
+    setAvailablePorts(ports);
   }, []);
 
   /**
@@ -328,40 +377,52 @@ export function useSerialPort(): UseSerialPortReturn {
   /**
    * Connect to a serial port
    */
-  const connect = useCallback(async (baudRate: number): Promise<void> => {
+  const connect = useCallback(async (baudRate: number, selectedPort?: SerialPort): Promise<void> => {
     try {
       setError(null);
       
       // Clean up any existing connection
       await cleanupExistingConnection();
 
-      // Request and select port
-      const selectedPort = await requestPort();
+      // Use provided port or request a new one
+      let portToConnect: SerialPort;
+      if (selectedPort) {
+        portToConnect = selectedPort;
+      } else {
+        const newPort = await requestNewPort();
+        if (!newPort) {
+          // User cancelled port selection
+          return;
+        }
+        portToConnect = newPort;
+        // Refresh available ports after requesting a new one
+        await refreshPorts();
+      }
+
+      // Extract and set port name
+      const portInfo = portToConnect.getInfo();
+      const name = extractPortName(portToConnect, portInfo);
+      setPortName(name);
 
       // Open port
-      await openPort(selectedPort, baudRate);
+      await openPort(portToConnect, baudRate);
 
       // Set up streams
-      const writer = setupWriter(selectedPort);
-      const reader = setupReader(selectedPort);
+      const writer = setupWriter(portToConnect);
+      const reader = setupReader(portToConnect);
       
       // Store references
       writerRef.current = writer;
       readerRef.current = reader;
       
       // Update state
-      setPort(selectedPort);
+      setPort(portToConnect);
       setIsConnected(true);
 
       // Start reading loop
-      startReadLoop(selectedPort, reader);
+      startReadLoop(portToConnect, reader);
       
     } catch (err) {
-      // Don't show error if user cancelled port selection
-      if (err instanceof Error && err.message === 'PORT_SELECTION_CANCELLED') {
-        return;
-      }
-      
       console.error('[Serial] Connect error:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to connect';
       setError(errorMessage);
@@ -369,7 +430,7 @@ export function useSerialPort(): UseSerialPortReturn {
       setIsConnected(false);
       setPort(null);
     }
-  }, [cleanupExistingConnection, requestPort, openPort, setupWriter, setupReader, startReadLoop]);
+  }, [cleanupExistingConnection, requestNewPort, refreshPorts, openPort, setupWriter, setupReader, startReadLoop]);
 
   /**
    * Disconnect from serial port
@@ -484,10 +545,13 @@ export function useSerialPort(): UseSerialPortReturn {
     isConnected,
     messages,
     portName,
+    availablePorts,
     connect,
     disconnect,
     send,
     clearMessages,
+    refreshPorts,
+    requestNewPort,
     error,
   };
 }

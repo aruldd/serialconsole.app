@@ -16,7 +16,12 @@
   },
   "serialConnection": {
     "title": "CONNECTION",
-    "baudRate": "Baud Rate"
+    "baudRate": "Baud Rate",
+    "port": "Port",
+    "selectPort": "Select Port",
+    "noPortsAvailable": "No ports available",
+    "requestNewPort": "Request New Port",
+    "refreshPorts": "Refresh"
   },
   "dataSender": {
     "title": "SEND DATA",
@@ -37,7 +42,11 @@
   },
   "messageHistory": {
     "title": "MESSAGE HISTORY",
-    "noMessages": "No messages yet"
+    "noMessages": "No messages yet",
+    "displayFormat": "Display Format",
+    "originalFormat": "Original",
+    "sortAscending": "Sort ascending (oldest first)",
+    "sortDescending": "Sort descending (newest first)"
   },
   "sentMessages": {
     "title": "SENT MESSAGES",
@@ -45,8 +54,9 @@
     "sentCount": "Sent {count} {count, plural, one {time} other {times}}"
   },
   "messageItem": {
-    "sent": "→ SENT",
-    "received": "← RECEIVED"
+    "sent": "SENT",
+    "received": "RECEIVED",
+    "original": "original"
   },
   "formats": {
     "ascii": "ASCII",
