@@ -38,9 +38,9 @@ export function SentMessages({ messages, onResend, isConnected, currentConfig }:
         }
       } else {
         grouped.set(key, {
-          originalData: msg.originalData,
+          originalData: msg.originalData!,
           format: msg.format,
-          displayText: msg.displayText,
+          displayText: msg.displayText || '',
           count: 1,
           latestTimestamp: msg.timestamp,
         });

@@ -10,10 +10,12 @@
     "disconnected": "Disconnected",
     "format": "Format",
     "resend": "Resend",
-    "autoScroll": "Auto-scroll"
+    "autoScroll": "Auto-scroll",
+    "darkMode": "Dark mode",
+    "lightMode": "Light mode"
   },
   "serialConnection": {
-    "title": "SERIAL CONNECTION",
+    "title": "CONNECTION",
     "baudRate": "Baud Rate"
   },
   "dataSender": {

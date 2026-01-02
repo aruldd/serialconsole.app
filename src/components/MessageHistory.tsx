@@ -72,7 +72,7 @@ export function MessageHistory({ messages, onClear, onResend, isConnected, curre
   };
 
   return (
-    <Paper style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden', backgroundColor: 'var(--mantine-color-gray-0)' }}>
+    <Paper style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <Stack gap="md" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <Group p="md" justify="space-between" align="center" style={{ flexShrink: 0 }}>
           <Text fw={500} size="md">{t('messageHistory.title')}</Text>

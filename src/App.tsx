@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Stack, Divider } from '@mantine/core';
 import Split from 'react-split';
 import { useSerialPort } from './hooks/useSerialPort';
+import { Header } from './components/Header';
 import { SerialConnection } from './components/SerialConnection';
 import { DataSender } from './components/DataSender';
 import { MessageHistory } from './components/MessageHistory';
@@ -39,7 +40,7 @@ function App() {
         snapOffset={0}
       >
         {/* Left Pane: Message History */}
-        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden', backgroundColor: 'var(--mantine-color-gray-0)' }}>
+        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <MessageHistory
             messages={messages}
             onClear={clearMessages}
@@ -52,6 +53,8 @@ function App() {
         {/* Right Pane: Connection and Send Tools */}
         <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden',  }}>
           <Stack gap={0} style={{ height: '100%' }}>
+            <Header />
+            <Divider />
             <SerialConnection
               isConnected={isConnected}
               onConnect={connect}

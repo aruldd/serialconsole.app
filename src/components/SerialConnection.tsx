@@ -52,10 +52,10 @@ export function SerialConnection({
   return (
     <Paper p="md">
       <Stack gap="md">
-        <Group justify="space-between" align="center">
+        <Text fw={500} size="md">{t('serialConnection.title')}</Text>
+        <Group gap="xs" align="center" justify="space-between">
           <Group gap="xs" align="center">
-            <Text fw={500} size="md">{t('serialConnection.title')}</Text>
-            <Badge color={isConnected ? 'green' : 'gray'} size="sm">
+            <Badge color={isConnected ? 'green' : 'gray'} size="lg">
               {isConnected ? t('common.connected') : t('common.disconnected')}
             </Badge>
             {isConnected && portName && (
