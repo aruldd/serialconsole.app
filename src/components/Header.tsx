@@ -6,7 +6,7 @@ export function Header() {
     <Paper p="md">
       <Group justify="space-between" align="center">
         <Text fw={700} size="xl" >
-          serialport.tools
+          serialconsole.app
         </Text>
         <ThemeToggle />
       </Group>
