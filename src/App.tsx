@@ -63,7 +63,7 @@ function App() {
         <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden',  }}>
           <Stack gap={0} style={{ height: '100%' }}>
             <Header />
-            <Divider />
+            <Divider color="var(--mantine-color-text)" size={1.5} />
             <SerialConnection
               isConnected={isConnected}
               onConnect={connect}
@@ -75,14 +75,14 @@ function App() {
               requestNewPort={requestNewPort}
               setReadConfig={setReadConfig}
             />
-            <Divider />
+            <Divider color="var(--mantine-color-text)" size={1.5} />
             <DataSender
               isConnected={isConnected}
               onSend={send}
               config={config}
               onConfigChange={setConfig}
             />
-            <Divider />
+            <Divider color="var(--mantine-color-text)" size={1.5} />
             <SentMessages
               messages={messages}
               onResend={send}

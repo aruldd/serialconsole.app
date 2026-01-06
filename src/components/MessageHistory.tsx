@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { Paper, Button, Group, Stack, Text, Switch, Box, Combobox, useCombobox, InputBase } from '@mantine/core';
+import { Paper, Group, Stack, Text, Checkbox, Box, Combobox, useCombobox, InputBase, ActionIcon } from '@mantine/core';
 import { IconTrash, IconDownload, IconArrowsUpDown } from '@tabler/icons-react';
 import { useIntl } from 'react-intl';
 import { useVirtualizer } from '@tanstack/react-virtual';
@@ -27,15 +27,15 @@ export function MessageHistory({ messages, onClear, onResend, isConnected, curre
   const previousMessageCountRef = useRef(0);
   const previousSortOrderRef = useRef<'asc' | 'desc'>('desc');
   const { exportMessages } = useExportMessages();
-  
+
   const formatCombobox = useCombobox({
     onDropdownClose: () => formatCombobox.resetSelectedOption(),
   });
-  
+
   const formatOptions = useMemo(() => {
     return getFormatOptions(t);
   }, [t]);
-  
+
   const selectedFormatLabel = useMemo(() => {
     return formatOptions.find(opt => opt.value === displayFormat)?.label || displayFormat;
   }, [displayFormat, formatOptions]);
@@ -108,7 +108,7 @@ export function MessageHistory({ messages, onClear, onResend, isConnected, curre
       if (scrollTimeout !== null) {
         clearTimeout(scrollTimeout);
       }
-      
+
       scrollTimeout = setTimeout(() => {
         const { scrollTop, scrollHeight, clientHeight } = scrollElement;
         if (sortOrder === 'desc') {
@@ -136,7 +136,7 @@ export function MessageHistory({ messages, onClear, onResend, isConnected, curre
   useEffect(() => {
     const sortOrderChanged = sortOrder !== previousSortOrderRef.current;
     previousSortOrderRef.current = sortOrder;
-    
+
     if (sortOrderChanged && sortOrder === 'desc' && parentRef.current && sortedMessages.length > 0) {
       // Scroll to top when switching to newest first
       requestAnimationFrame(() => {
@@ -154,11 +154,12 @@ export function MessageHistory({ messages, onClear, onResend, isConnected, curre
   return (
     <Paper style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <Stack gap="md" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        <Stack gap="xs" p="md" style={{ flexShrink: 0 }}>
+        <Stack gap="xs" p="md" style={{ flexShrink: 0, borderBottom: '1.5px solid var(--mantine-color-text)' }}>
           <Group justify="space-between" align="center">
             <Text fw={500} size="md">{t('messageHistory.title')}</Text>
             <Group>
-              <Switch
+              <Checkbox
+                variant="outline"
                 label={t('common.autoScroll')}
                 checked={autoScroll}
                 onChange={(e) => setAutoScroll(e.currentTarget.checked)}
@@ -195,43 +196,43 @@ export function MessageHistory({ messages, onClear, onResend, isConnected, curre
                   </Combobox.Options>
                 </Combobox.Dropdown>
               </Combobox>
-              <Button
+              <ActionIcon
                 onClick={onClear}
-                variant="light"
+                variant="outline"
                 color="red"
                 disabled={messages.length === 0}
-                size="sm"
+                size="lg"
                 title={t('common.clear')}
               >
                 <IconTrash size={16} />
-              </Button>
-              <Button
+              </ActionIcon>
+              <ActionIcon
                 onClick={toggleSortOrder}
-                variant="light"
+                variant="outline"
                 disabled={messages.length === 0}
-                size="sm"
+                size="lg"
                 title={sortOrder === 'asc' ? t('messageHistory.sortDescending') : t('messageHistory.sortAscending')}
               >
                 <IconArrowsUpDown size={16} />
-              </Button>
-              <Button
+              </ActionIcon>
+              <ActionIcon
                 onClick={handleExport}
-                variant="light"
+                variant="outline"
                 disabled={messages.length === 0}
-                size="sm"
+                size="lg"
                 title={t('common.export')}
               >
                 <IconDownload size={16} />
-              </Button>
+              </ActionIcon>
             </Group>
           </Group>
         </Stack>
 
-        <Box 
+        <Box
           ref={parentRef}
-          style={{ 
-            flex: 1, 
-            minHeight: 0, 
+          style={{
+            flex: 1,
+            minHeight: 0,
             overflow: 'auto',
             position: 'relative'
           }}

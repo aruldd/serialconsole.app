@@ -201,6 +201,7 @@ export function DataSender({ isConnected, onSend, config, onConfigChange }: Data
         )}
 
         <Button
+          variant="outline"
           leftSection={<IconSend size={16} />}
           onClick={handleSend}
           disabled={!isConnected || !data.trim() || sending || !validation.isValid}

@@ -8,45 +8,53 @@ import { bytesToString } from '../utils/formatConverter';
 /**
  * Highlight CR and LF characters in the display text
  */
-function highlightLineEndings(text: string, format: DataFormat): React.ReactNode {
+function highlightLineEndings(text: string, format: DataFormat, t: (key: string) => string): React.ReactNode {
+  const highlightStyle = {
+    border: '1px solid var(--mantine-color-text)',
+    padding: '2px 4px',
+    fontWeight: 600,
+  } as const;
+
   if (format === 'hex') {
     // For hex format, highlight 0D (CR) and 0A (LF) as complete hex bytes
-    // Hex format is space-separated like "ff 0d 0a 00"
     const parts: React.ReactNode[] = [];
-    const words = text.split(/(\s+)/); // Split by whitespace but keep separators
-    
-    for (let i = 0; i < words.length; i++) {
-      const word = words[i];
-      const upperWord = word.toUpperCase();
-      
-      if (upperWord === '0D' || upperWord === '0A') {
-        const isCR = upperWord === '0D';
-        parts.push(
-          <span
-            key={i}
-            style={{
-              backgroundColor: isCR ? 'var(--mantine-color-orange-2)' : 'var(--mantine-color-cyan-2)',
-              color: isCR ? 'var(--mantine-color-orange-9)' : 'var(--mantine-color-cyan-9)',
-              padding: '2px 4px',
-              borderRadius: '3px',
-              fontWeight: 600,
-            }}
-            title={isCR ? 'Carriage Return (CR, \\r, 0x0D)' : 'Line Feed (LF, \\n, 0x0A)'}
-          >
-            {word}
-          </span>
-        );
-      } else {
-        parts.push(word);
+    const regex = /\b(0[dD]|0[aA])\b/g;
+    let lastIndex = 0;
+    let match;
+    let key = 0;
+
+    while ((match = regex.exec(text)) !== null) {
+      // Add text before match
+      if (match.index > lastIndex) {
+        parts.push(text.substring(lastIndex, match.index));
       }
+
+      const isCR = match[0].toUpperCase() === '0D';
+      parts.push(
+        <span
+          key={key++}
+          style={highlightStyle}
+          title={isCR ? t('messageItem.carriageReturnHex') : t('messageItem.lineFeedHex')}
+        >
+          {match[0]}
+        </span>
+      );
+
+      lastIndex = regex.lastIndex;
     }
-    
+
+    // Add remaining text
+    if (lastIndex < text.length) {
+      parts.push(text.substring(lastIndex));
+    }
+
     return parts.length > 0 ? parts : text;
   } else if (format === 'ascii' || format === 'utf8') {
     // For ASCII/UTF-8, highlight actual \r and \n characters
     const parts: React.ReactNode[] = [];
     let lastIndex = 0;
-    
+    let key = 0;
+
     for (let i = 0; i < text.length; i++) {
       const char = text[i];
       if (char === '\r' || char === '\n') {
@@ -54,39 +62,31 @@ function highlightLineEndings(text: string, format: DataFormat): React.ReactNode
         if (i > lastIndex) {
           parts.push(text.substring(lastIndex, i));
         }
-        
-        // Add highlighted character
+
         const isCR = char === '\r';
         parts.push(
           <span
-            key={i}
-            style={{
-              backgroundColor: isCR ? 'var(--mantine-color-orange-2)' : 'var(--mantine-color-cyan-2)',
-              color: isCR ? 'var(--mantine-color-orange-9)' : 'var(--mantine-color-cyan-9)',
-              padding: '2px 4px',
-              borderRadius: '3px',
-              fontWeight: 600,
-            }}
-            title={isCR ? 'Carriage Return (CR, \\r)' : 'Line Feed (LF, \\n)'}
+            key={key++}
+            style={highlightStyle}
+            title={isCR ? t('messageItem.carriageReturn') : t('messageItem.lineFeed')}
           >
             {isCR ? '\\r' : '\\n'}
           </span>
         );
-        
+
         lastIndex = i + 1;
       }
     }
-    
+
     // Add remaining text
     if (lastIndex < text.length) {
       parts.push(text.substring(lastIndex));
     }
-    
+
     return parts.length > 0 ? parts : text;
-  } else {
-    // For other formats, return as-is
-    return text;
   }
+
+  return text;
 }
 
 interface MessageItemProps {
@@ -100,17 +100,17 @@ interface MessageItemProps {
 function MessageItemComponent({ message, onResend, isConnected, currentConfig, displayFormat }: MessageItemProps) {
   const intl = useIntl();
   const t = (key: string) => intl.formatMessage({ id: key });
-  
+
   // Memoize expensive calculations
   const formatToUse = useMemo(() => displayFormat || message.format, [displayFormat, message.format]);
   const displayText = useMemo(() => bytesToString(message.data, formatToUse), [message.data, formatToUse]);
-  const highlightedText = useMemo(() => highlightLineEndings(displayText, formatToUse), [displayText, formatToUse]);
+  const highlightedText = useMemo(() => highlightLineEndings(displayText, formatToUse, t), [displayText, formatToUse, t]);
   const isSent = useMemo(() => message.type === 'sent', [message.type]);
   const canResend = useMemo(
     () => isSent && isConnected && message.originalData && onResend && currentConfig,
     [isSent, isConnected, message.originalData, onResend, currentConfig]
   );
-  
+
   const handleClick = useCallback(() => {
     if (canResend && message.originalData && onResend && currentConfig) {
       onResend(message.originalData, message.format, currentConfig);
@@ -125,11 +125,11 @@ function MessageItemComponent({ message, onResend, isConnected, currentConfig, d
       console.error('[MessageHistory] Failed to copy:', err);
     }
   }, [displayText]);
-  
+
   const [isHovered, setIsHovered] = React.useState(false);
 
   return (
-    <Box 
+    <Box
       px="md"
       onClick={canResend ? handleClick : undefined}
       onMouseEnter={() => setIsHovered(true)}
@@ -146,32 +146,36 @@ function MessageItemComponent({ message, onResend, isConnected, currentConfig, d
           style={{
             minWidth: 120,
             flexShrink: 0,
-            backgroundColor: 'var(--mantine-color-gray-1)',
+            backgroundColor: 'var(--mantine-color-body)',
             padding: '8px',
-            borderRadius: '4px',
+            border: '1px solid var(--mantine-color-text)',
+            boxShadow: 'var(--mantine-color-text) 5px 5px 0px 0px',
           }}
         >
           <Group gap={4}>
             {isSent ? (
-              <IconArrowLeft size={16} color="var(--mantine-color-blue-6)" />
+              <IconArrowLeft size={16} color="var(--mantine-color-text)" />
             ) : (
-              <IconArrowRight size={16} color="var(--mantine-color-green-6)" />
+              <IconArrowRight size={16} color="var(--mantine-color-text)" />
             )}
-            <Text size="sm" >
+            <Text size="sm" color="var(--mantine-color-text)">
               {message.timestamp.toLocaleTimeString()}
             </Text>
           </Group>
         </Box>
-        
+
         {/* Right side: Message content */}
-        <Box style={{ flex: 1, minWidth: 0, position: 'relative' }}>
+        <Box style={{ flex: 1, minWidth: 0, position: 'relative', }}>
           <Box style={{ position: 'relative' }}>
             <Code
               block
               style={{
                 whiteSpace: 'pre-wrap',
                 wordBreak: 'break-all',
-                backgroundColor: isSent ? 'var(--mantine-color-blue-0)' : 'var(--mantine-color-green-0)',
+                backgroundColor: 'var(--mantine-color-body)',
+                borderRadius: '0px',
+                borderBottom: '1px solid var(--mantine-color-text)',
+                // boxShadow: 'var(--mantine-color-text) 5px 5px 0px 0px',
               }}
             >
               {highlightedText}

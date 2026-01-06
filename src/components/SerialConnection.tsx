@@ -1,4 +1,4 @@
-import { ActionIcon, Button, Combobox, Group, InputBase, Paper, SegmentedControl, Stack, Switch, Text, useCombobox } from '@mantine/core';
+import { ActionIcon, Button, Checkbox, Combobox, Group, InputBase, Paper, SegmentedControl, Stack, Text, useCombobox } from '@mantine/core';
 import { IconPlugConnected, IconPlugConnectedX, IconRefresh } from '@tabler/icons-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -36,11 +36,11 @@ export function SerialConnection({
   const [readLineEnding, setReadLineEnding] = useState<LineEnding>('crlf');
   const [readCustomLineEnding, setReadCustomLineEnding] = useState<string>('');
   const pendingPortRef = useRef<SerialPort | null>(null);
-  
+
   const baudRateCombobox = useCombobox({
     onDropdownClose: () => baudRateCombobox.resetSelectedOption(),
   });
-  
+
   const portCombobox = useCombobox({
     onDropdownClose: () => portCombobox.resetSelectedOption(),
   });
@@ -54,12 +54,12 @@ export function SerialConnection({
       const newPortInfo = pendingPort.getInfo();
       const vendorId = newPortInfo.usbVendorId;
       const productId = newPortInfo.usbProductId;
-      
+
       const matchingPort = availablePorts.find(p => {
         const info = p.port.getInfo();
         return info.usbVendorId === vendorId && info.usbProductId === productId;
       });
-      
+
       if (matchingPort) {
         setSelectedPortId(matchingPort.id);
         pendingPortRef.current = null;
@@ -79,10 +79,10 @@ export function SerialConnection({
     setReadConfig(config);
     try {
       // Find selected port if one is selected
-      const selectedPort = selectedPortId 
+      const selectedPort = selectedPortId
         ? availablePorts.find(p => p.id === selectedPortId)?.port
         : undefined;
-      
+
       await onConnect(config.baudRate, selectedPort);
     } catch (err) {
       console.error('[SerialConnection] Error in onConnect:', err);
@@ -115,8 +115,8 @@ export function SerialConnection({
     }
   };
 
-  const selectedPortName = selectedPortId 
-    ? availablePorts.find(p => p.id === selectedPortId)?.name 
+  const selectedPortName = selectedPortId
+    ? availablePorts.find(p => p.id === selectedPortId)?.name
     : null;
 
   return (
@@ -170,7 +170,7 @@ export function SerialConnection({
               </>
             )}
             <Button
-              variant="light"
+              variant="outline"
               size="sm"
               onClick={handleRequestNewPort}
               disabled={isConnected}
@@ -211,25 +211,30 @@ export function SerialConnection({
               </Combobox.Dropdown>
             </Combobox>
             {!isConnected ? (
-              <Button
+              <ActionIcon
+                variant="outline"
                 onClick={handleConnect}
                 disabled={!baudRate}
                 title={t('common.connect')}
+                size="lg"
               >
                 <IconPlugConnected size={16} />
-              </Button>
+              </ActionIcon>
             ) : (
-              <Button
+              <ActionIcon
+                variant="outline"
                 onClick={handleDisconnect}
                 color="red"
                 title={t('common.disconnect')}
+                size="lg"
               >
                 <IconPlugConnectedX size={16} />
-              </Button>
+              </ActionIcon>
             )}
           </Group>
         </Group>
-        <Switch
+        <Checkbox
+          variant="outline"
           label={t('serialConnection.readUntilLineEnding')}
           checked={readUntilLineEnding}
           onChange={(e) => {
@@ -266,6 +271,7 @@ export function SerialConnection({
                 setReadConfig(config);
               }}
               data={lineEndingOptions}
+              variant='outline'
               size="sm"
             />
             {readLineEnding === 'custom' && (

@@ -59,7 +59,11 @@
   "messageItem": {
     "sent": "SENT",
     "received": "RECEIVED",
-    "original": "original"
+    "original": "original",
+    "carriageReturnHex": "Carriage Return (CR, \\r, 0x0D)",
+    "lineFeedHex": "Line Feed (LF, \\n, 0x0A)",
+    "carriageReturn": "Carriage Return (CR, \\r)",
+    "lineFeed": "Line Feed (LF, \\n)"
   },
   "formats": {
     "ascii": "ASCII",
@@ -104,4 +108,3 @@
     "disconnectError": "Disconnect error: {message}"
   }
 }
-
