@@ -106,5 +106,19 @@
     "readError": "Read error: {message}",
     "sendError": "Send error: {message}",
     "disconnectError": "Disconnect error: {message}"
+  },
+  "browserSupport": {
+    "title": "Browser Not Supported",
+    "message": "The Web Serial API is not supported in your current browser. This application requires a browser that supports the Web Serial API.",
+    "supportedBrowsers": "Supported Browsers:",
+    "chrome": "Google Chrome 89+",
+    "edge": "Microsoft Edge 89+",
+    "opera": "Opera 75+",
+    "notSupportedBrowsers": "Not Supported:",
+    "firefox": "Mozilla Firefox",
+    "safari": "Apple Safari",
+    "other": "Other browsers",
+    "note": "Please switch to a supported browser to use this application.",
+    "learnMore": "Learn more about browser compatibility"
   }
 }

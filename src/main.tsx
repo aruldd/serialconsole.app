@@ -9,6 +9,7 @@ import './index.css';
 import App from './App';
 import { messages, defaultLocale } from './utils/i18n';
 import { MantineColorSchemeScript } from './components/ColorSchemeScript';
+import { WebSerialGuard } from './components/WebSerialGuard';
 import { mantineTheme } from './theme';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -17,7 +18,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <IntlProvider locale={defaultLocale} messages={messages[defaultLocale]}>
       <MantineProvider defaultColorScheme="auto" theme={mantineTheme}>
         <Notifications position="bottom-left" />
-        <App />
+        <WebSerialGuard>
+          <App />
+        </WebSerialGuard>
       </MantineProvider>
     </IntlProvider>
   </React.StrictMode>,

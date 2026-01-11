@@ -60,7 +60,7 @@ function App() {
         </div>
 
         {/* Right Pane: Connection and Send Tools */}
-        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden',  }}>
+        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden', }}>
           <Stack gap={0} style={{ height: '100%' }}>
             <Header />
             <Divider color="var(--mantine-color-text)" size={1.5} />
