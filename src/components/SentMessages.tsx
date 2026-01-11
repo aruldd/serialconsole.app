@@ -24,10 +24,10 @@ export function SentMessages({ messages, onResend, isConnected, currentConfig }:
   const t = (key: string, values?: Record<string, any>) => intl.formatMessage({ id: key }, values);
   const sentMessages = useMemo(() => {
     const sent = messages.filter(msg => msg.type === 'sent' && msg.originalData);
-    
+
     // Group messages by originalData and format
     const grouped = new Map<string, GroupedMessage>();
-    
+
     sent.forEach(msg => {
       const key = `${msg.originalData}|${msg.format}`;
       if (grouped.has(key)) {
@@ -46,14 +46,14 @@ export function SentMessages({ messages, onResend, isConnected, currentConfig }:
         });
       }
     });
-    
+
     // Convert to array and sort by count (descending)
     return Array.from(grouped.values()).sort((a, b) => b.count - a.count);
   }, [messages]);
 
   const handleResend = async (message: GroupedMessage) => {
     if (!isConnected) return;
-    
+
     try {
       await onResend(message.originalData, message.format, currentConfig);
     } catch (error) {
@@ -65,9 +65,9 @@ export function SentMessages({ messages, onResend, isConnected, currentConfig }:
     <Paper p="md" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <Stack gap="md" style={{ height: '100%' }}>
         <Text fw={500} size="md">{t('sentMessages.title')}</Text>
-        
+
         {sentMessages.length === 0 ? (
-          <Text c="dimmed" size="sm" style={{ textAlign: 'center', padding: '20px' }}>
+          <Text size="sm" style={{ textAlign: 'center', padding: '20px' }}>
             {t('sentMessages.noMessages')}
           </Text>
         ) : (
@@ -79,7 +79,7 @@ export function SentMessages({ messages, onResend, isConnected, currentConfig }:
                     key={`${message.originalData}-${message.format}-${index}`}
                     p="xs"
                     withBorder
-                    style={{ 
+                    style={{
                       cursor: isConnected ? 'pointer' : 'default',
                       transition: 'background-color 0.2s',
                     }}

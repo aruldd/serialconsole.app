@@ -239,7 +239,7 @@ export function MessageHistory({ messages, onClear, onResend, isConnected, curre
         >
           {sortedMessages.length === 0 ? (
             <Box style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-              <Text c="dimmed" size="sm" ta="center" py="xl">
+              <Text size="sm" ta="center" py="xl">
                 {t('messageHistory.noMessages')}
               </Text>
             </Box>
