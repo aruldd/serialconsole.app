@@ -1,4 +1,4 @@
-import { Paper, Group, Text, Box, ActionIcon, Tooltip } from '@mantine/core';
+import { Paper, Group, Box, ActionIcon, Tooltip } from '@mantine/core';
 import { IconBrandGithub } from '@tabler/icons-react';
 import { ThemeToggle } from './ThemeToggle';
 
