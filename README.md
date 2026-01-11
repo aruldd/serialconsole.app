@@ -1,6 +1,12 @@
-# Web Serial Communication
+# SerialConsole.app
 
 A modern, feature-rich web application for serial port communication using the Web Serial API. Built with React, TypeScript, and Mantine UI.
+
+🌐 **[Try SerialConsole.app](https://serialconsole.app)**
+
+## Screenshot
+
+![SerialConsole.app](screenshot.png)
 
 ## Features
 
@@ -52,7 +58,7 @@ This application uses the **Web Serial API**, which is currently supported in:
 1. Clone the repository:
 ```bash
 git clone <repository-url>
-cd web-serial
+cd serial-monitor
 ```
 
 2. Install dependencies:
@@ -106,7 +112,7 @@ npm run dev
 ## Project Structure
 
 ```
-web-serial/
+serial-monitor/
 ├── src/
 │   ├── components/          # React components
 │   │   ├── ColorSchemeScript.tsx
