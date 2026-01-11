@@ -16,18 +16,18 @@ import * as Sentry from '@sentry/react';
  * });
  */
 export function reportError(
-  error: Error,
-  options?: {
-    tags?: Record<string, string>;
-    extra?: Record<string, unknown>;
-    level?: 'error' | 'warning' | 'info' | 'debug';
-  }
+    error: Error,
+    options?: {
+        tags?: Record<string, string>;
+        extra?: Record<string, unknown>;
+        level?: 'error' | 'warning' | 'info' | 'debug';
+    }
 ): void {
-  Sentry.captureException(error, {
-    tags: options?.tags,
-    extra: options?.extra,
-    level: options?.level || 'error',
-  });
+    Sentry.captureException(error, {
+        tags: options?.tags,
+        extra: options?.extra,
+        level: options?.level || 'error',
+    });
 }
 
 /**
@@ -42,18 +42,18 @@ export function reportError(
  * });
  */
 export function reportMessage(
-  message: string,
-  level: 'error' | 'warning' | 'info' | 'debug' = 'info',
-  options?: {
-    tags?: Record<string, string>;
-    extra?: Record<string, unknown>;
-  }
+    message: string,
+    level: 'error' | 'warning' | 'info' | 'debug' = 'info',
+    options?: {
+        tags?: Record<string, string>;
+        extra?: Record<string, unknown>;
+    }
 ): void {
-  Sentry.captureMessage(message, {
-    level,
-    tags: options?.tags,
-    extra: options?.extra,
-  });
+    Sentry.captureMessage(message, {
+        level,
+        tags: options?.tags,
+        extra: options?.extra,
+    });
 }
 
 /**
@@ -66,14 +66,14 @@ export function reportMessage(
  * testSentryError();
  */
 export function testSentryError(): void {
-  try {
-    throw new Error('Test error for Sentry - This is intentional for testing');
-  } catch (error) {
-    reportError(error as Error, {
-      tags: { test: 'true', source: 'manual-test' },
-      level: 'info',
-    });
-  }
+    try {
+        throw new Error('Test error for Sentry - This is intentional for testing');
+    } catch (error) {
+        reportError(error as Error, {
+            tags: { test: 'true', source: 'manual-test' },
+            level: 'info',
+        });
+    }
 }
 
 /**
@@ -89,18 +89,18 @@ export function testSentryError(): void {
  * });
  */
 export function addBreadcrumb(
-  message: string,
-  options?: {
-    category?: string;
-    level?: 'error' | 'warning' | 'info' | 'debug';
-    data?: Record<string, unknown>;
-  }
+    message: string,
+    options?: {
+        category?: string;
+        level?: 'error' | 'warning' | 'info' | 'debug';
+        data?: Record<string, unknown>;
+    }
 ): void {
-  Sentry.addBreadcrumb({
-    message,
-    category: options?.category || 'default',
-    level: options?.level || 'info',
-    data: options?.data,
-  });
+    Sentry.addBreadcrumb({
+        message,
+        category: options?.category || 'default',
+        level: options?.level || 'info',
+        data: options?.data,
+    });
 }
 

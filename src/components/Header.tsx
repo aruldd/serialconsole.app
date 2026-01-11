@@ -1,4 +1,5 @@
-import { Paper, Group, Text, Box } from '@mantine/core';
+import { Paper, Group, Text, Box, ActionIcon, Tooltip } from '@mantine/core';
+import { IconBrandGithub } from '@tabler/icons-react';
 import { ThemeToggle } from './ThemeToggle';
 
 export function Header() {
@@ -14,7 +15,22 @@ export function Header() {
             serialconsole.app
           </Text>
         </Box>
-        <ThemeToggle />
+        <Group gap="xs">
+          <Tooltip label="View on GitHub">
+            <ActionIcon
+              variant="outline"
+              component="a"
+              href="https://github.com/aruldd/serial-monitor"
+              target="_blank"
+              rel="noopener noreferrer"
+              size="lg"
+              aria-label="View on GitHub"
+            >
+              <IconBrandGithub size={18} />
+            </ActionIcon>
+          </Tooltip>
+          <ThemeToggle />
+        </Group>
       </Group>
     </Paper>
   );
