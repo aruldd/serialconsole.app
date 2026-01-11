@@ -11,6 +11,7 @@ import App from './App';
 import { messages, defaultLocale } from './utils/i18n';
 import { MantineColorSchemeScript } from './components/ColorSchemeScript';
 import { WebSerialGuard } from './components/WebSerialGuard';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { mantineTheme } from './theme';
 
 Sentry.init({
@@ -34,9 +35,11 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <IntlProvider locale={defaultLocale} messages={messages[defaultLocale]}>
       <MantineProvider defaultColorScheme="auto" theme={mantineTheme}>
         <Notifications position="bottom-left" />
-        <WebSerialGuard>
-          <App />
-        </WebSerialGuard>
+        <ErrorBoundary>
+          <WebSerialGuard>
+            <App />
+          </WebSerialGuard>
+        </ErrorBoundary>
       </MantineProvider>
     </IntlProvider>
   </React.StrictMode>,

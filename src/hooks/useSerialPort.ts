@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
+import * as Sentry from '@sentry/react';
 import { notifications } from '@mantine/notifications';
 import { SerialMessage, SerialConnectionConfig, DataFormat, SerialPortOption, LineEnding } from '../types';
 import { bytesToString, stringToBytes, getLineEndingBytes } from '../utils/formatConverter';
@@ -191,6 +192,13 @@ async function getAvailablePorts(): Promise<SerialPortOption[]> {
     });
   } catch (error) {
     console.error('[Serial] Error getting available ports:', error);
+    // Report to Sentry but don't show user notification for port enumeration errors
+    if (error instanceof Error) {
+      Sentry.captureException(error, {
+        tags: { operation: 'getAvailablePorts' },
+        level: 'warning',
+      });
+    }
     return [];
   }
 }
@@ -263,11 +271,17 @@ export function useSerialPort(): UseSerialPortReturn {
       setAvailablePorts(ports);
       return selectedPort;
     } catch (err) {
-      // User cancelled port selection
+      // User cancelled port selection - don't report to Sentry
       if (err instanceof DOMException) {
         if (err.name === 'NotFoundError' || err.name === 'AbortError') {
           return null;
         }
+      }
+      // Report unexpected errors to Sentry
+      if (err instanceof Error) {
+        Sentry.captureException(err, {
+          tags: { operation: 'requestNewPort' },
+        });
       }
       throw err;
     }
@@ -415,6 +429,11 @@ export function useSerialPort(): UseSerialPortReturn {
           const errorMsg = `Read error: ${readError.message || String(readError)}`;
           setError(errorMsg);
           showErrorNotification('Read Error', errorMsg);
+          // Report unexpected read errors to Sentry
+          Sentry.captureException(readError, {
+            tags: { operation: 'readLoop' },
+            extra: { errorMessage: errorMsg },
+          });
         }
       } finally {
         // Clean up reader reference
@@ -489,6 +508,18 @@ export function useSerialPort(): UseSerialPortReturn {
       showErrorNotification('Connection Error', errorMessage);
       setIsConnected(false);
       setPort(null);
+      // Report connection errors to Sentry
+      if (err instanceof Error) {
+        Sentry.captureException(err, {
+          tags: { operation: 'connect' },
+          extra: { baudRate, errorMessage },
+        });
+      } else {
+        Sentry.captureException(new Error(errorMessage), {
+          tags: { operation: 'connect' },
+          extra: { baudRate, originalError: String(err) },
+        });
+      }
     }
   }, [cleanupExistingConnection, requestNewPort, refreshPorts, openPort, setupWriter, setupReader, startReadLoop]);
 
@@ -533,6 +564,13 @@ export function useSerialPort(): UseSerialPortReturn {
       if (!isExpectedError(new Error(errorMessage)) && !errorMessage.includes('already')) {
         setError(errorMessage);
         showErrorNotification('Disconnect Error', errorMessage);
+        // Report unexpected disconnect errors to Sentry
+        if (err instanceof Error) {
+          Sentry.captureException(err, {
+            tags: { operation: 'disconnect' },
+            extra: { errorMessage },
+          });
+        }
       }
     }
   }, []);
@@ -601,6 +639,27 @@ export function useSerialPort(): UseSerialPortReturn {
       // Update connection state if write failed
       if (errorMessage.includes('closed') || errorMessage.includes('CLOSED')) {
         setIsConnected(false);
+      }
+      
+      // Report send errors to Sentry
+      if (err instanceof Error) {
+        Sentry.captureException(err, {
+          tags: { operation: 'send' },
+          extra: { 
+            format,
+            dataLength: data.length,
+            errorMessage,
+          },
+        });
+      } else {
+        Sentry.captureException(new Error(errorMessage), {
+          tags: { operation: 'send' },
+          extra: { 
+            format,
+            dataLength: data.length,
+            originalError: String(err),
+          },
+        });
       }
     }
   }, [isConnected, port]);
