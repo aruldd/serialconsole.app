@@ -181,6 +181,20 @@ The production build will be output to the `dist/` directory.
 
 These can be modified in `src/constants/index.ts`.
 
+### Sentry Error Tracking
+
+This project uses Sentry for error tracking and session replay. To enable sourcemap uploads during build:
+
+1. Create a `.env` file in the root directory
+2. Add your Sentry auth token:
+   ```
+   SENTRY_AUTH_TOKEN=your_auth_token_here
+   ```
+3. Get your auth token from: https://sentry.io/settings/account/api/auth-tokens/
+   - Required scopes: `project:releases` and `org:read`
+
+The sourcemaps will be automatically uploaded when you run `npm run build`.
+
 ## License
 
 MIT License
