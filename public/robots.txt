@@ -1,0 +1,17 @@
+# robots.txt for SerialConsole.app
+
+# Allow all search engines to crawl the entire site
+User-agent: *
+Allow: /
+
+# Disallow crawling of build artifacts and development files
+Disallow: /node_modules/
+Disallow: /.git/
+Disallow: /dist/
+Disallow: /*.map$
+
+# Sitemap location (update when sitemap is available)
+# Sitemap: https://serialconsole.app/sitemap.xml
+
+# Crawl-delay (optional, in seconds)
+# Crawl-delay: 1
