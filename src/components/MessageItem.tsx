@@ -185,6 +185,7 @@ function MessageItemComponent({ message, onResend, isConnected, currentConfig, d
               color="gray"
               size="sm"
               title={t('common.copy')}
+              aria-label={t('common.copy')}
               onClick={handleCopy}
               style={{
                 position: 'absolute',

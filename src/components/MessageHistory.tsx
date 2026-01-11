@@ -203,6 +203,7 @@ export function MessageHistory({ messages, onClear, onResend, isConnected, curre
                 disabled={messages.length === 0}
                 size="lg"
                 title={t('common.clear')}
+                aria-label={t('common.clear')}
               >
                 <IconTrash size={16} />
               </ActionIcon>
@@ -212,6 +213,7 @@ export function MessageHistory({ messages, onClear, onResend, isConnected, curre
                 disabled={messages.length === 0}
                 size="lg"
                 title={sortOrder === 'asc' ? t('messageHistory.sortDescending') : t('messageHistory.sortAscending')}
+                aria-label={sortOrder === 'asc' ? t('messageHistory.sortDescending') : t('messageHistory.sortAscending')}
               >
                 <IconArrowsUpDown size={16} />
               </ActionIcon>
@@ -221,6 +223,7 @@ export function MessageHistory({ messages, onClear, onResend, isConnected, curre
                 disabled={messages.length === 0}
                 size="lg"
                 title={t('common.export')}
+                aria-label={t('common.export')}
               >
                 <IconDownload size={16} />
               </ActionIcon>

@@ -16,6 +16,16 @@ export default defineConfig({
   ],
   build: {
     sourcemap: true, // Source map generation must be turned on
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom'],
+          'mantine-vendor': ['@mantine/core', '@mantine/hooks', '@mantine/notifications'],
+          'intl-vendor': ['react-intl'],
+        },
+      },
+    },
+    chunkSizeWarningLimit: 1000,
   },
 })
 

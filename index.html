@@ -6,6 +6,12 @@
   <link rel="icon" type="image/svg+xml" href="/vite.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+  <!-- Resource Hints for Performance -->
+  <link rel="preconnect" href="https://github.com" crossorigin />
+  <link rel="dns-prefetch" href="https://github.com" />
+  <link rel="preconnect" href="https://o4510692838342656.ingest.de.sentry.io" crossorigin />
+  <link rel="dns-prefetch" href="https://o4510692838342656.ingest.de.sentry.io" />
+
   <!-- Primary Meta Tags -->
   <title>SerialConsole.app - Web Serial Port Communication Tool</title>
   <meta name="title" content="SerialConsole.app - Web Serial Port Communication Tool" />
@@ -25,6 +31,9 @@
   <meta property="og:description"
     content="Modern web-based serial port communication tool using Web Serial API. Connect to serial devices, send/receive data in multiple formats. No installation required." />
   <meta property="og:image" content="https://serialconsole.app/screenshot.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="SerialConsole.app - Web Serial Port Communication Tool" />
 
   <!-- Twitter -->
   <meta property="twitter:card" content="summary_large_image" />
@@ -33,15 +42,62 @@
   <meta property="twitter:description"
     content="Modern web-based serial port communication tool using Web Serial API. Connect to serial devices, send/receive data in multiple formats. No installation required." />
   <meta property="twitter:image" content="https://serialconsole.app/screenshot.png" />
+  <meta property="twitter:image:alt" content="SerialConsole.app - Web Serial Port Communication Tool" />
 
   <!-- Additional SEO -->
-  <meta name="theme-color" content="#ffffff" />
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#242424" media="(prefers-color-scheme: dark)" />
   <link rel="canonical" href="https://serialconsole.app/" />
+
+  <!-- Security Headers -->
+  <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+  <meta http-equiv="X-Frame-Options" content="DENY" />
+  <meta http-equiv="X-XSS-Protection" content="1; mode=block" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+
+  <!-- Structured Data (JSON-LD) -->
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "SerialConsole.app",
+      "description": "Modern web-based serial port communication tool using Web Serial API. Connect to serial devices, send/receive data in multiple formats (ASCII, Hex, Binary, Decimal, UTF-8, Base64).",
+      "url": "https://serialconsole.app/",
+      "applicationCategory": "UtilityApplication",
+      "operatingSystem": "Web Browser",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "author": {
+        "@type": "Person",
+        "name": "Aruleeswaran Anbarasan"
+      },
+      "browserRequirements": "Requires JavaScript. Requires HTML5. Requires Web Serial API support.",
+      "softwareVersion": "1.0",
+      "screenshot": "https://serialconsole.app/screenshot.png",
+      "featureList": [
+        "Web Serial API support",
+        "Multiple data formats (ASCII, Hex, Binary, Decimal, UTF-8, Base64)",
+        "Configurable baud rates",
+        "Custom line endings",
+        "Message history",
+        "Dark mode support"
+      ]
+    }
+  </script>
 </head>
 
 <body>
   <div id="root"></div>
   <script type="module" src="/src/main.tsx"></script>
+  <noscript>
+    <div style="padding: 20px; text-align: center; font-family: Arial, sans-serif;">
+      <h1>JavaScript Required</h1>
+      <p>SerialConsole.app requires JavaScript to function. Please enable JavaScript in your browser settings.</p>
+    </div>
+  </noscript>
 </body>
 
 </html>

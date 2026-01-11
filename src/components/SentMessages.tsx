@@ -124,6 +124,7 @@ export function SentMessages({ messages, onResend, isConnected, currentConfig }:
                           variant="subtle"
                           color="blue"
                           title={t('common.resend')}
+                          aria-label={t('common.resend')}
                           onClick={(e) => {
                             e.stopPropagation();
                             handleResend(message);

@@ -164,6 +164,7 @@ export function SerialConnection({
                   onClick={handleRefreshPorts}
                   disabled={isConnected}
                   title={t('serialConnection.refreshPorts')}
+                  aria-label={t('serialConnection.refreshPorts')}
                 >
                   <IconRefresh size={16} />
                 </ActionIcon>
@@ -216,6 +217,7 @@ export function SerialConnection({
                 onClick={handleConnect}
                 disabled={!baudRate}
                 title={t('common.connect')}
+                aria-label={t('common.connect')}
                 size="lg"
               >
                 <IconPlugConnected size={16} />
@@ -226,6 +228,7 @@ export function SerialConnection({
                 onClick={handleDisconnect}
                 color="red"
                 title={t('common.disconnect')}
+                aria-label={t('common.disconnect')}
                 size="lg"
               >
                 <IconPlugConnectedX size={16} />
